@@ -12,11 +12,13 @@ from __future__ import annotations
 
 import json
 import re
+import os
 from pathlib import Path
 
 from rank_bm25 import BM25Okapi
 
-DATA = Path(__file__).resolve().parent.parent / "data"
+DATA = Path(os.environ.get("DATA_DIR",
+                           Path(__file__).resolve().parent.parent / "data"))
 INDEX = DATA / "hts_index.json"
 
 # Words that carry no discriminatory signal in HTS descriptions.

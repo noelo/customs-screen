@@ -1,0 +1,6 @@
+apiVersion: v2
+name: customs-screen
+description: Border Classifier — three-tier HTS classification demo (BM25 recall, logprob scoring, LLM verification) with a web UI.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

@@ -1,0 +1,107 @@
+# Default values for customs-screen.
+# Deploy target: OpenShift SNO (aarch64), namespace deepsec, StorageClass lvms-vg1.
+
+replicaCount: 1
+
+image:
+  repository: quay.io/noeloc/customs-screen
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Set to an existing SA name to reuse one (e.g. a namespace-admin SA).
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext:
+  # Image ships a non-root USER 1001 — restricted/baseline SCC compliant.
+  runAsNonRoot: true
+  runAsUser: 1001
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+  seccompProfile:
+    type: RuntimeDefault
+
+service:
+  type: ClusterIP
+  port: 8000
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: "2"
+    memory: 2Gi
+
+# The app loads the 29,860-code HTS index + BM25 at startup.
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 15
+  failureThreshold: 5
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+
+# ---- Application env -------------------------------------------------------
+# TMM_MAAS_API_KEY is required by the scoring layer (jev.py reads the env or
+# ~/.hermes/.env; in-cluster it MUST come from a secret). Either reference an
+# existing secret or let the chart create one with apiKey set.
+llm:
+  baseUrl: ""    # e.g. https://maas.apps.ocp.cloud.rhai-tmm.dev/prelude-maas/glm-53-flash/v1
+  model: ""      # e.g. glm-53-flash
+  existingSecret: ""   # secret holding TMM_MAAS_API_KEY (key: TMM_MAAS_API_KEY)
+  secretKey: TMM_MAAS_API_KEY
+  apiKey: ""     # ONLY used when existingSecret is empty; creates the secret
+
+# ---- Data volume + init pod -------------------------------------------------
+# The 36 MB HTS export+index are NOT baked into the image. An init container
+# downloads the USITC export and builds the index into a PV on first deploy;
+# later deploys skip when the index exists (idempotent).
+persistence:
+  enabled: true
+  existingClaim: ""
+  storageClassName: lvms-vg1
+  size: 5Gi
+  accessMode: ReadWriteOnce
+
+initContainer:
+  enabled: true
+  image:
+    repository: curlimages/curl
+    tag: "8.10.1"
+    pullPolicy: IfNotPresent
+  # The init image needs python to build the index — use the app image itself
+  # (it has curl + python). Leave empty to reuse the app image.
+  imageOverride: ""
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

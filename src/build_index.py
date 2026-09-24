@@ -90,6 +90,13 @@ def build() -> list[dict]:
 
 
 def main() -> None:
+    import sys
+    # --data-dir override (used by the init container to build into the PV).
+    if "--data-dir" in sys.argv:
+        d = Path(sys.argv[sys.argv.index("--data-dir") + 1])
+        globals()["DATA"] = d
+        globals()["RAW"] = d / "hts_raw.json"
+        globals()["OUT"] = d / "hts_index.json"
     entries = build()
     OUT.write_text(json.dumps(entries, indent=0))
     stats: dict[str, int] = {}

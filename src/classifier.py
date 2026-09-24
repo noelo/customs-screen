@@ -30,6 +30,9 @@ from recall import HTSCatalog
 
 DEFAULT_BASE_URL = "https://maas.apps.ocp.cloud.rhai-tmm.dev/prelude-maas/glm-53-flash/v1"
 DEFAULT_MODEL = "glm-53-flash"
+# Chart/deploy override points: the Helm chart wires these from values.
+BASE_URL = os.environ.get("LLM_BASE_URL", DEFAULT_BASE_URL)
+MODEL = os.environ.get("LLM_MODEL", DEFAULT_MODEL)
 
 
 @dataclass
@@ -86,9 +89,11 @@ def _chat(prompt: str, base_url: str, model: str, max_tokens: int = 800,
 class CustomsClassifier:
     def __init__(self, catalog: HTSCatalog | None = None,
                  scorer: JevScorer | None = None,
-                 base_url: str = DEFAULT_BASE_URL, model: str = DEFAULT_MODEL,
+                 base_url: str | None = None, model: str | None = None,
                  pool_size: int = 30, use_semantic_filter: bool = True,
                  use_verifier: bool = True):
+        base_url = base_url or BASE_URL
+        model = model or MODEL
         self.catalog = catalog or HTSCatalog()
         self.scorer = scorer or JevScorer(base_url=base_url, model=model)
         self.base_url = base_url
