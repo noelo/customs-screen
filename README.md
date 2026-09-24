@@ -43,6 +43,23 @@ curl -o data/hts_raw.json "https://hts.usitc.gov/reststop/exportList?from=0100&t
 ./.venv/bin/python src/build_index.py
 ```
 
+## Web UI
+
+A single-page UI ships in `src/server.py` (FastAPI, serves the HTML inline —
+no build step). Enter a goods description, get every candidate's probability
+sorted highest first, plus the escalation banner and verifier rationale when
+the spread is flat:
+
+```bash
+cd ~/customs-classifier
+./.venv/bin/python src/server.py          # http://127.0.0.1:8000
+```
+
+- `GET /` — the page; `POST /classify {"query": ...}` — JSON result;
+  `GET /healthz` — readiness.
+- Requires `fastapi` + `python-multipart` in the venv
+  (`uv pip install --python .venv/bin/python fastapi python-multipart`).
+
 ## Verified 2026-09-23 (end to end, real endpoint)
 
 - "Assorted metal fasteners, zinc-plated, mixed sizes, for construction"

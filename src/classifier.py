@@ -47,6 +47,10 @@ class Classification:
     timings_ms: dict[str, float] = field(default_factory=dict)
     filter_headings: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
+    # The entries the FINAL scoring round's distribution labels index. In bracket
+    # mode this is the survivor subset, NOT the full pool -- distribution labels
+    # must be resolved against this list, never against `candidates`.
+    scored: list[dict] = field(default_factory=list)
 
     def to_json(self) -> str:
         return json.dumps(asdict(self), indent=2)
@@ -219,6 +223,10 @@ class CustomsClassifier:
             timings_ms=timings,
             filter_headings=headings,
             notes=notes,
+            # Distribution labels index the scored set (pool, or bracket survivors).
+            scored=[{"label": self._label_for(i), "code": e["code"],
+                     "description": e["description"]}
+                    for i, e in enumerate(decision_set)],
         )
 
         # Tier 3 -- spend frontier tokens only when the spread says so.
