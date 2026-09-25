@@ -22,12 +22,15 @@ serviceAccount:
 
 podAnnotations: {}
 
-podSecurityContext: {}
+podSecurityContext:
+  # OpenShift restricted-v3 SCC requires explicit hostUsers: false.
+  hostUsers: false
 
 securityContext:
-  # Image ships a non-root USER 1001 — restricted/baseline SCC compliant.
+  # runAsNonRoot with NO pinned runAsUser: OpenShift SCCs inject a UID from
+  # the namespace range ([1000850000..] here); pinning 1001 fails restricted-v2
+  # admission. The image's USER 1001 is overridden by the SCC-assigned UID.
   runAsNonRoot: true
-  runAsUser: 1001
   allowPrivilegeEscalation: false
   capabilities:
     drop: ["ALL"]

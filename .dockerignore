@@ -1,0 +1,8 @@
+# Keep the build context small: deps live in the image, data is fetched by
+# the init container, venv/git never belong in a container image.
+.venv
+data
+.git
+.gitignore
+__pycache__
+**/__pycache__

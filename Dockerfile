@@ -12,7 +12,13 @@ WORKDIR /app
 
 RUN pip install --no-cache-dir fastapi==0.115.* uvicorn==0.32.* rank_bm25==0.2.2
 
+# curl is needed by docker/init-data.sh (init container downloads the USITC
+# export); python:3.13-slim ships without it.
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY src/ /app/src/
+COPY docker/ /app/docker/
 
 # The HTS index is downloaded at deploy time by the chart's init container
 # into the mounted PV at /data (see chart/ values: initContainer.enabled).
